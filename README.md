@@ -41,7 +41,7 @@ Upload a resume (PDF or DOCX) and optionally paste a job description. The app ex
 
 ## Live Demo
 
-[Add your deployed link here once live]
+https://ai-resume-analyzer-vki0.onrender.com
 
 ## Author
 

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Analysis Results - AI Resume Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    <header class="header text-center">
+      <div class="badge">Analysis Complete</div>
+      <h1 class="title">Resume <span class="accent">Evaluation</span></h1>
+      <p class="subtitle">Detailed breakdown powered by Gemini AI</p>
+    </header>
+
+    <div class="card score-card">
+      <div class="score-ring-wrapper">
+        <div class="score-circle">
+          <span class="score-value" id="score-counter" data-score="{{ result.match_score }}">0</span>
+          <span class="score-max">/100</span>
+        </div>
+      </div>
+      <div class="score-info">
+        <h2 class="score-headline">Match Score</h2>
+        <p class="score-desc">
+          {% if result.match_score >= 80 %}
+            Strong alignment with target domain and technical requirements.
+          {% elif result.match_score >= 60 %}
+            Solid foundation with recognizable qualifications and moderate role fit.
+          {% else %}
+            Potential qualification gaps identified. Review missing areas below.
+          {% endif %}
+        </p>
+        <div class="score-bar-bg">
+          <div class="score-bar-fill" id="score-bar-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+
+    {% if result.summary %}
+    <section class="card section-card">
+      <h3 class="section-title">
+        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Executive Summary
+      </h3>
+      <p class="summary-text">{{ result.summary }}</p>
+    </section>
+    {% endif %}
+
+    <section class="card section-card">
+      <h3 class="section-title">
+        <svg class="section-icon text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Key Strengths
+      </h3>
+      {% if result.strengths %}
+        <ul class="analysis-list">
+          {% for strength in result.strengths %}
+            <li class="list-item strength-item">
+              <svg class="item-icon text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span class="item-text">{{ strength }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty-state">No specific strengths highlighted.</p>
+      {% endif %}
+    </section>
+
+    <section class="card section-card">
+      <h3 class="section-title">
+        <svg class="section-icon text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 22 20 2 20 12 2"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Areas for Improvement
+      </h3>
+      {% if result.weaknesses %}
+        <ul class="analysis-list">
+          {% for weakness in result.weaknesses %}
+            <li class="list-item weakness-item">
+              <svg class="item-icon text-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              <span class="item-text">{{ weakness }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty-state">No notable weaknesses identified.</p>
+      {% endif %}
+    </section>
+
+    <section class="card section-card">
+      <h3 class="section-title">
+        <svg class="section-icon text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+        Missing Keywords & Skills
+      </h3>
+      {% if result.missing_keywords %}
+        <div class="keywords-wrap">
+          {% for keyword in result.missing_keywords %}
+            <span class="keyword-chip">{{ keyword }}</span>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-state">All critical keywords and skills appear to be addressed.</p>
+      {% endif %}
+    </section>
+
+    <div class="action-footer">
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">
+        <svg class="btn-icon-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5"/>
+          <path d="m12 19-7-7 7-7"/>
+        </svg>
+        Analyze Another Resume
+      </a>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const counter = document.getElementById('score-counter');
+      const scoreBar = document.getElementById('score-bar-fill');
+      if (!counter) return;
+
+      const finalScore = parseInt(counter.dataset.score, 10) || 0;
+      const duration = 1200;
+      const startTime = performance.now();
+
+      if (scoreBar) {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            scoreBar.style.width = finalScore + '%';
+          }, 80);
+        });
+      }
+
+      function countUp(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+        const currentScore = Math.round(easeOutCubic * finalScore);
+
+        counter.textContent = currentScore;
+
+        if (progress < 1) {
+          requestAnimationFrame(countUp);
+        } else {
+          counter.textContent = finalScore;
+        }
+      }
+
+      requestAnimationFrame(countUp);
+    });
+  </script>
+</body>
+</html>

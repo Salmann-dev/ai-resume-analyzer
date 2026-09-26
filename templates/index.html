@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Resume Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <div class="badge">AI-POWERED RESUME ANALYSIS</div>
+      <h1 class="title">AI Resume <span class="accent">Analyzer</span></h1>
+      <p class="subtitle">Upload your resume to get instant match scoring, key strengths, potential weaknesses, and actionable keyword recommendations.</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="analyzer-wrapper">
+      <form action="{{ url_for('analyze') }}" method="POST" enctype="multipart/form-data" class="card form-card" id="analyzer-form">
+        <div class="form-group">
+          <label class="form-label" for="resume">
+            Resume File <span class="req">*</span>
+            <span class="file-hint">PDF or DOCX</span>
+          </label>
+          <div class="dropzone" id="dropzone">
+            <input type="file" id="resume" name="resume" accept=".pdf,.docx" required class="file-input">
+            <div class="dropzone-content" id="dropzone-default">
+              <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <p class="dropzone-title">Drag & drop your resume here, or <span class="browse-link">browse</span></p>
+              <p class="dropzone-sub">Supports PDF or Word (.docx)</p>
+            </div>
+            <div class="dropzone-selected" id="dropzone-selected" style="display: none;">
+              <svg class="file-success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <polyline points="9 15 11 17 15 13"/>
+              </svg>
+              <p class="file-name" id="selected-filename">filename.pdf</p>
+              <p class="file-change-hint">Click or drop another file to replace</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="job_description">
+            Target Job Description <span class="opt">(Optional)</span>
+          </label>
+          <textarea 
+            id="job_description" 
+            name="job_description" 
+            rows="5" 
+            class="form-control" 
+            placeholder="Paste job posting or role requirements here for a tailored match score and missing keyword analysis..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submit-btn">
+          <span class="btn-text">Analyze Resume</span>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14"/>
+            <path d="m12 5 7 7-7 7"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="card loading-card" id="loading-state" style="display: none;">
+        <div class="spinner"></div>
+        <p class="loading-title">Analyzing resume...</p>
+        <p class="loading-sub">Extracting text, evaluating qualifications, and scoring alignment.</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById('resume');
+    const form = document.getElementById('analyzer-form');
+    const dropzone = document.getElementById('dropzone');
+    const dropzoneDefault = document.getElementById('dropzone-default');
+    const dropzoneSelected = document.getElementById('dropzone-selected');
+    const selectedFilename = document.getElementById('selected-filename');
+    const loadingState = document.getElementById('loading-state');
+
+    function updateSelectedFile(file) {
+      if (file) {
+        selectedFilename.textContent = file.name;
+        dropzoneDefault.style.display = 'none';
+        dropzoneSelected.style.display = 'block';
+        dropzone.classList.add('has-file');
+      }
+    }
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        updateSelectedFile(e.target.files[0]);
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach(name => {
+      dropzone.addEventListener(name, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('drag-over');
+      });
+    });
+
+    ['dragleave', 'dragend'].forEach(name => {
+      dropzone.addEventListener(name, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('drag-over');
+      });
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropzone.classList.remove('drag-over');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        fileInput.files = e.dataTransfer.files;
+        updateSelectedFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    form.addEventListener('submit', (e) => {
+      if (fileInput.files && fileInput.files.length > 0) {
+        form.style.display = 'none';
+        loadingState.style.display = 'flex';
+      }
+    });
+  </script>
+</body>
+</html>

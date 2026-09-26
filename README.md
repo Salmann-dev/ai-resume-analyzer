@@ -45,4 +45,4 @@ Upload a resume (PDF or DOCX) and optionally paste a job description. The app ex
 
 ## Author
 
-Built by Salman
+Built by [Salmann](https://github.com/Salmann-dev)
